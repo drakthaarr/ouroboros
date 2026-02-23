@@ -1,13 +1,33 @@
+<div align="center">
+  <a href="https://github.com/drakthaarr/ouroboros">
+    <img src="ouroboros/assets/Logo.png" alt="Ouroboros Logo" width="180" height="180">
+  </a>
 
-# 🐉 Ouroboros: Quantitative Pairs Trading Bot
+  <h2 align="center">ouroboros</h2>
+
+  <p align="center">
+    An elegant solution by <strong>drakthaarr</strong>.
+    <br />
+    <a href="https://github.com/drakthaarr/ouroboros"><strong>Explore the Docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/drakthaarr/ouroboros/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/drakthaarr/ouroboros/issues">Request Feature</a>
+  </p>
+  
+  <p align="center">
+    <img src="https://img.shields.io/github/stars/drakthaarr/ouroboros?style=for-the-badge&color=gold" alt="Stars">
+    <img src="https://img.shields.io/github/license/drakthaarr/ouroboros?style=for-the-badge&color=blue" alt="License">
+  </p>
+</div>
+
+ 🐉 Ouroboros: Quantitative Pairs Trading Bot
 
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![CCXT](https://img.shields.io/badge/ccxt-latest-green.svg)
 ![Pandas](https://img.shields.io/badge/pandas-data_analysis-orange.svg)
 ![Status](https://img.shields.io/badge/status-live_on_vps-success.svg)
-
-![Logo Name](ouroboros/assets/Logo.png)
-
 
 
 **Ouroboros** is an automated, fully autonomous algorithmic trading bot designed for the Binance Spot market. It implements a **Statistical Arbitrage (Pairs Trading)** strategy using mean-reversion mathematics on highly correlated cryptocurrency pairs (e.g., BTC/USDT and ETH/USDT).
