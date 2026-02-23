@@ -1,91 +1,100 @@
-import ccxt
+"""
+exchange.py
+
+Provides a thin, safe wrapper around the ccxt Binance exchange object.
+
+The sole responsibility of this module is to construct a correctly
+configured ccxt.binance instance and expose it via the `exchange`
+attribute. All higher-level operations (balance checks, order placement)
+are intentionally left to the callers in main.py and strategy.py, keeping
+this module focused and independently testable.
+"""
+
 import logging
 
-# Configure basic logging to output to console
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-class BinanceClient:
-    """
-    A wrapper class for Binance exchange operations using ccxt.
-    """
-
-    def __init__(self, api_key: str, api_secret: str):
-        """
-        Initialize the Binance client with API credentials.
-        """
-        try:
-            self.exchange = ccxt.binance({
-                'apiKey': api_key,
-                'secret': api_secret,
-                'enableRateLimit': True, # Crucial: prevents IP bans by respecting API rate limits
-                'options': {
-                    'defaultType': 'spot' # We are trading on the spot market, not futures
-                }
-            })
-            logger.info("Binance client initialized successfully.")
-        except Exception as e:
-            logger.error(f"Failed to initialize Binance client: {e}")
-            raise
-
-    def get_usdt_balance(self) -> float:
-        """
-        Fetches the free (available) USDT balance from the spot account.
-        
-        Returns:
-            float: The available USDT balance. Returns 0.0 if an error occurs.
-        """
-        try:
-            # Fetch all balances
-            balance = self.exchange.fetch_balance()
-            
-            # Extract the 'free' (not locked in orders) USDT amount
-            usdt_free = balance.get('USDT', {}).get('free', 0.0)
-            
-            logger.info(f"Current available USDT balance: {usdt_free}")
-            return float(usdt_free)
-            
-        except ccxt.NetworkError as e:
-            logger.warning(f"Network error while fetching balance: {e}")
-            return 0.0
-        except ccxt.ExchangeError as e:
-            logger.warning(f"Exchange error while fetching balance: {e}")
-            return 0.0
-        except Exception as e:
-            logger.error(f"Unexpected error while fetching balance: {e}")
-            return 0.0import pandas as pd
 import ccxt
 
+# ---------------------------------------------------------------------------
+# Module-level logger — inherits handlers configured in main.py at runtime.
+# ---------------------------------------------------------------------------
+logger = logging.getLogger(__name__)
+
+
 class BinanceClient:
-    def __init__(self):
-        self.exchange = ccxt.binance({
-            'apiKey': os.getenv('BINANCE_API_KEY'),
-            'apiSecret': os.getenv('BINANCE_API_SECRET'),
-        })
+    """
+    Lightweight wrapper that constructs and validates a ccxt Binance instance.
 
-    def get_usdt_balance(self):
-        # existing code...
+    Attributes
+    ----------
+    exchange : ccxt.binance
+        The fully configured ccxt exchange object. All callers should
+        interact with the exchange exclusively through this attribute.
 
-    def fetch_ohlcv_data(self, symbol, timeframe, limit):
+    Parameters
+    ----------
+    api_key : str
+        Binance API key loaded from the .env file via config.py.
+    api_secret : str
+        Binance API secret loaded from the .env file via config.py.
+
+    Raises
+    ------
+    ccxt.AuthenticationError
+        If ccxt rejects the provided credentials during initialisation.
+    ccxt.ExchangeError
+        If ccxt fails to build the exchange object for any other
+        exchange-side reason.
+    Exception
+        Re-raised for any unexpected error so the caller (main.py) can
+        decide whether to abort or retry.
+    """
+
+    def __init__(self, api_key: str, api_secret: str) -> None:
+        logger.info("Initialising ccxt Binance client...")
+
         try:
-            ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
-            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            return df
-        except ccxt.NetworkError as e:
-            print(f"Network error: {e}")
-            return None
+            self.exchange: ccxt.binance = ccxt.binance({
+                # --- Credentials ---
+                "apiKey": api_key,
+                "secret": api_secret,
 
-    def place_market_order(self, symbol, side, amount):
-        try:
-            order = self.exchange.place_market_order(symbol, side, amount)
-            return order
-        except ccxt.InsufficientFunds as e:
-            print(f"Insufficient funds: {e}")
-            return None
-        except ccxt.NetworkError as e:
-            print(f"Network error: {e}")
-            return None
+                # --- Safety: respect Binance rate limits automatically ---
+                # ccxt will insert short sleeps between requests when this is
+                # True, preventing HTTP 429 bans without any extra code on our
+                # side. Always enable this for a live bot.
+                "enableRateLimit": True,
+
+                # --- Routing: force all operations to the Spot market ---
+                # Without this, certain ccxt methods can silently fall back to
+                # the USD-M Futures endpoint, which would be catastrophic for a
+                # spot-only strategy. This option pins every request to Spot.
+                "options": {
+                    "defaultType": "spot",
+                },
+            })
+
+        except ccxt.AuthenticationError as exc:
+            logger.error(
+                "Authentication failed — check that BINANCE_API_KEY and "
+                "BINANCE_API_SECRET in your .env file are correct: %s", exc,
+            )
+            raise
+
+        except ccxt.ExchangeError as exc:
+            logger.error(
+                "ccxt raised an ExchangeError while building the Binance "
+                "client. The exchange may be temporarily unavailable: %s", exc,
+            )
+            raise
+
+        except Exception as exc:
+            logger.critical(
+                "Unexpected error during BinanceClient initialisation: %s",
+                exc, exc_info=True,
+            )
+            raise
+
+        logger.info(
+            "BinanceClient initialised successfully. "
+            "market=spot | rate_limit_enabled=True",
+        )
