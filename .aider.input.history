@@ -1,0 +1,55 @@
+
+# 2026-02-22 23:34:20.189940
++y
+
+# 2026-02-22 23:34:32.880303
++n
+
+# 2026-02-22 23:35:07.882688
++Hello?
+
+# 2026-02-22 23:37:58.153558
++Act as an expert Python Quantitative Developer and Algorithmic Trading Architect. 
++We are building a Cryptocurrency Statistical Arbitrage (Pairs Trading) bot for Binance.
++
++### Tech Stack & Rules:
++- Python 3.10+ managed via `poetry`.
++- Libraries: `ccxt` (exchange interactions), `pandas` (data manipulation and math), `python-dotenv` (secrets management).
++- Strict Rule 1: ALL code comments, docstrings, and log messages MUST be in English.
++- Strict Rule 2: NEVER hardcode API keys. Always use `os.getenv` via `python-dotenv`.
++- Strict Rule 3: Write production-grade code. Include robust `try-except` blocks, especially for network calls and API requests.
++- Strict Rule 4: Use the `logging` module to output to both the console and a `logs/trading.log` file.
++
++### Current Architecture (Context):
++- `config.py`: Loads variables from `.env`.
++- `exchange.py`: Contains `BinanceClient` using `ccxt`. Currently has `get_usdt_balance()`.
++- `strategy.py`: Will contain the math logic.
++- `main.py`: The entry point and orchestrator.
++
++### Tasks to Execute:
++
++1. Update `exchange.py`:
++   - Add a method `fetch_ohlcv_data(symbol, timeframe, limit)` returning a Pandas DataFrame with columns: `['timestamp', 'open', 'high', 'low', 'close', 'volume']`. Ensure the timestamp is converted to a readable datetime format.
++   - Add a method `place_market_order(symbol, side, amount)` to execute trades. Wrap it in strict try-except blocks handling `ccxt.InsufficientFunds` and `ccxt.NetworkError`.
++
++2. Implement `strategy.py`:
++   - Create a class `PairsTradingStrategy`.
++   - Implement a method `calculate_z_score(df_asset1, df_asset2, window_size)`. It should calculate the price ratio (spread) between Asset 1 (e.g., BTC/USDT) and Asset 2 (e.g., ETH/USDT), then calculate the rolling mean, rolling standard deviation, and finally the Z-score of the spread.
++   - Implement a method `generate_signal(z_score, upper_threshold=2.0, lower_threshold=-2.0)` returning actionable signals (e.g., 'SHORT_SPREAD', 'LONG_SPREAD', 'FLAT').
++
++3. Update `main.py` (The Orchestrator):
++   - Set up file-based logging to `logs/trading.log`.
++   - Create a continuous loop (e.g., `while True:` with a `time.sleep(60)` at the end) that:
++     a) Fetches the latest OHLCV data for BTC/USDT and ETH/USDT.
++     b) Passes the data to `PairsTradingStrategy`.
++     c) Logs the current Z-score.
++     d) If a signal is triggered, calculates the order size (hardcode a safe test amount, e.g., $15 worth of crypto, while checking if `get_usdt_balance()` has enough funds).
++     e) Executes the mock or real trades via `exchange.py`.
++
++Please implement these changes step-by-step, ensuring the code is modular, readable, and PEP 8 compliant. Do not execute real trades yet; if possible, add a `MOCK_TRADING=True` flag in `config.py` to only log the intended trades instead of hitting the actual order API during testing.
+
+# 2026-02-22 23:38:46.065069
++add exchange.py main.py config.py strategy.py
+
+# 2026-02-22 23:39:00.529362
++y
