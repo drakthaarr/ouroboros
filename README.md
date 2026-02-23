@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/drakthaarr/ouroboros">
-    <img src="https://imgur.com/a/VtP5b73" alt="Ouroboros Logo" width="180" height="180">
+    <img src="https://i.imgur.com/YYg7R5t.png" alt="Ouroboros Logo" width="180" height="180">
   </a>
 
   <h2 align="center">ouroboros</h2>
